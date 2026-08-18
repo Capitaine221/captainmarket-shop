@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --color-ink: #0a0a0b;
+  --color-ink-2: #141416;
+  --color-ink-3: #1c1c1f;
+  --color-cream: #f3f1ea;
+  --color-gold: #c9a24b;
+  --radius-btn: 10px;
+  --radius-card: 18px;
+}
+
+@theme inline {
+  --color-ink: var(--color-ink);
+  --color-ink-2: var(--color-ink-2);
+  --color-ink-3: var(--color-ink-3);
+  --color-cream: var(--color-cream);
+  --color-gold: var(--color-gold);
+  --font-heading: var(--font-poppins);
+  --font-sans: var(--font-work-sans);
+  --radius-btn: var(--radius-btn);
+  --radius-card: var(--radius-card);
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-work-sans), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: var(--color-gold);
+  color: var(--color-ink);
+  border-radius: var(--radius-btn);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-cream);
+  border: 1px solid rgba(243, 241, 234, 0.3);
+  border-radius: var(--radius-btn);
+}
+
+.card-surface {
+  background: var(--color-ink-2);
+  border-radius: var(--radius-card);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-3);
+  border-radius: 8px;
+}

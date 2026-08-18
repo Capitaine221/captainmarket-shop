@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products ProductCategory[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?
+  status      String   @default("ACTIVE") // ACTIVE | DRAFT
+  vendor      String?
+  option1Name String?
+  option2Name String?
+  option3Name String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images     ProductImage[]
+  variants   ProductVariant[]
+  categories ProductCategory[]
+  orderItems OrderItem[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  position  Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductVariant {
+  id                String  @id @default(cuid())
+  title             String
+  priceCents        Int
+  inventoryQuantity Int     @default(0)
+  sku               String?
+  option1Value      String?
+  option2Value      String?
+  option3Value      String?
+  imageUrl          String?
+  productId         String
+  product           Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  orderItems OrderItem[]
+}
+
+model ProductCategory {
+  productId  String
+  categoryId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  email           String
+  status          String   @default("PENDING") // PENDING | PAID | CANCELLED
+  totalCents      Int
+  currency        String   @default("CAD")
+  stripeSessionId String?  @unique
+  shippingName    String?
+  shippingAddress String?
+  shippingCity    String?
+  shippingCountry String?
+  shippingPostal  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id         String          @id @default(cuid())
+  orderId    String
+  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id])
+  variantId  String
+  variant    ProductVariant  @relation(fields: [variantId], references: [id])
+  titleSnapshot   String
+  variantSnapshot String
+  priceCents      Int
+  quantity        Int
+}
