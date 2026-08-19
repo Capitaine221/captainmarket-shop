@@ -83,6 +83,7 @@ export async function POST(request: Request) {
   revalidatePath("/admin");
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const toAbsoluteUrl = (url?: string) => (url ? new URL(url, siteUrl).toString() : undefined);
 
   try {
     const stripe = getStripe();
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
           unit_amount: i.priceCents,
           product_data: {
             name: `${i.title} — ${i.variantTitle}`,
-            images: i.imageUrl ? [i.imageUrl] : undefined,
+            images: toAbsoluteUrl(i.imageUrl) ? [toAbsoluteUrl(i.imageUrl)!] : undefined,
           },
         },
       })),
@@ -108,10 +109,9 @@ export async function POST(request: Request) {
     await prisma.order.update({ where: { id: order.id }, data: { stripeSessionId: session.id } });
 
     return NextResponse.json({ url: session.url });
-  } catch {
-    return NextResponse.json(
-      { error: "Le paiement n'est pas encore configuré. Ajoute tes clés Stripe dans .env." },
-      { status: 500 }
-    );
+  } catch (e) {
+    console.error("[checkout] Stripe session creation failed:", e);
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: "Erreur Stripe.", detail: message }, { status: 500 });
   }
 }
