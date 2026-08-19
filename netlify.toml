@@ -2,5 +2,11 @@
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  # Turbopack's build cache stores compiled data that can incidentally contain
+  # literal secret values (e.g. ADMIN_PASSWORD used in a Server Action). That
+  # cache dir isn't part of the deployed output, so exclude it from scanning.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache/**"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
