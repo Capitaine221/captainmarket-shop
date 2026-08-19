@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { checkRateLimit } from "@/lib/rateLimit";
@@ -60,36 +61,26 @@ export async function POST(request: Request) {
 
   const totalCents = lineItems.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
 
-  let order;
-  try {
-    order = await prisma.order.create({
-      data: {
-        email: "pending@checkout",
-        status: "PENDING",
-        totalCents,
-        currency: "CAD",
-        items: {
-          create: lineItems.map((i) => ({
-            productId: i.productId,
-            variantId: i.variantId,
-            titleSnapshot: i.title,
-            variantSnapshot: i.variantTitle,
-            priceCents: i.priceCents,
-            quantity: i.quantity,
-          })),
-        },
+  const order = await prisma.order.create({
+    data: {
+      email: "pending@checkout",
+      status: "PENDING",
+      totalCents,
+      currency: "CAD",
+      items: {
+        create: lineItems.map((i) => ({
+          productId: i.productId,
+          variantId: i.variantId,
+          titleSnapshot: i.title,
+          variantSnapshot: i.variantTitle,
+          priceCents: i.priceCents,
+          quantity: i.quantity,
+        })),
       },
-    });
-  } catch (e) {
-    console.error("[checkout] order.create failed:", e);
-    return NextResponse.json(
-      { error: "Erreur lors de la création de la commande.", detail: e instanceof Error ? e.message : String(e) },
-      { status: 500 }
-    );
-  }
-
-  const verify = await prisma.order.findUnique({ where: { id: order.id } });
-  console.log("[checkout] order created, id:", order.id, "verify read-back:", verify ? "FOUND" : "NOT FOUND");
+    },
+  });
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 

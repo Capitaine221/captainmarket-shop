@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
 import { deleteProduct } from "../../actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProductsPage() {
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "desc" },

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
@@ -24,7 +25,10 @@ export async function POST(request: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const orderId = session.metadata?.orderId;
     if (orderId) {
-      const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: { include: { product: { select: { slug: true } } } } },
+      });
       if (order && order.status !== "PAID") {
         await prisma.$transaction([
           prisma.order.update({
@@ -46,6 +50,13 @@ export async function POST(request: Request) {
             })
           ),
         ]);
+
+        revalidatePath("/admin/orders");
+        revalidatePath("/admin");
+        revalidatePath("/");
+        for (const item of order.items) {
+          revalidatePath(`/product/${item.product.slug}`);
+        }
       }
     }
   }
