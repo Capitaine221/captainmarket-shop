@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ImageUrlField from "../ImageUrlField";
 
 type Variant = {
   title: string;
@@ -103,7 +104,7 @@ export default function ProductForm({
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium">Images (URLs)</label>
+          <label className="block text-sm font-medium">Images</label>
           <button
             type="button"
             onClick={() => setImages([...images, ""])}
@@ -114,22 +115,24 @@ export default function ProductForm({
         </div>
         <div className="space-y-2">
           {images.map((url, i) => (
-            <div key={i} className="flex gap-2">
-              <input
+            <div key={i} className="flex gap-2 items-center">
+              <ImageUrlField
                 name="image_url"
                 value={url}
-                onChange={(e) => {
-                  const next = [...images];
-                  next[i] = e.target.value;
-                  setImages(next);
+                onChange={(next) => {
+                  const nextImages = [...images];
+                  nextImages[i] = next;
+                  setImages(nextImages);
                 }}
-                placeholder="https://..."
-                className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
               />
+              {url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={url} alt="" className="h-9 w-9 object-cover rounded-md border border-neutral-200 shrink-0" />
+              )}
               <button
                 type="button"
                 onClick={() => setImages(images.filter((_, idx) => idx !== i))}
-                className="text-red-500 text-sm px-2"
+                className="text-red-500 text-sm px-2 shrink-0"
               >
                 Retirer
               </button>
@@ -246,16 +249,14 @@ export default function ProductForm({
                   }}
                   className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
                 />
-                <input
+                <ImageUrlField
                   name="variant_image"
                   value={v.imageUrl ?? ""}
-                  onChange={(e) => {
-                    const next = [...variants];
-                    next[i] = { ...next[i], imageUrl: e.target.value };
-                    setVariants(next);
+                  onChange={(next) => {
+                    const nextVariants = [...variants];
+                    nextVariants[i] = { ...nextVariants[i], imageUrl: next };
+                    setVariants(nextVariants);
                   }}
-                  placeholder="https://..."
-                  className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
                 />
                 <button
                   type="button"

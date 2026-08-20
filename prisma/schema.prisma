@@ -6,6 +6,13 @@ datasource db {
   provider = "sqlite"
 }
 
+model UploadedImage {
+  id        String   @id @default(cuid())
+  data      Bytes
+  mimeType  String
+  createdAt DateTime @default(now())
+}
+
 model Category {
   id          String   @id @default(cuid())
   name        String
