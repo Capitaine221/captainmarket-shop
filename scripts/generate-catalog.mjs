@@ -10,6 +10,7 @@
 // with a newly-pushed image.
 
 import { createClient } from '@libsql/client';
+import { getStore } from '@netlify/blobs';
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -97,6 +98,15 @@ async function toDataUri(srcPath, maxWidth, quality = 76) {
   return `data:image/jpeg;base64,${buf.toString('base64')}`;
 }
 
+async function bufferToDataUri(input, maxWidth, quality = 76) {
+  const buf = await sharp(input)
+    .resize({ width: maxWidth, withoutEnlargement: true })
+    .flatten({ background: '#111111' })
+    .jpeg({ quality })
+    .toBuffer();
+  return `data:image/jpeg;base64,${buf.toString('base64')}`;
+}
+
 const productImages = new Map();
 for (const p of rows) {
   const urls = imagesByProduct.get(p.id) || [];
@@ -108,6 +118,40 @@ for (const p of rows) {
   }
   productImages.set(p.id, dataUris);
 }
+
+// Products added through the catalog-only mini dashboard (catalog-site/dashboard.html),
+// stored in Netlify Blobs — independent of Turso, so they survive even if captainmarket's
+// own app/database is down. Only present when running inside a Netlify build; skipped
+// entirely for local runs (no NETLIFY_BLOBS_CONTEXT), which just means 0 extras.
+const catBySlugForExtras = new Map(CATEGORIES.map(c => [c.slug, c]));
+let extraCount = 0;
+if (process.env.NETLIFY_BLOBS_CONTEXT) {
+  try {
+    const extrasStore = getStore('catalog-extras');
+    const extraImagesStore = getStore('catalog-extra-images');
+    const extras = (await extrasStore.get('products.json', { type: 'json' })) || [];
+    for (const extra of extras) {
+      const category = catBySlugForExtras.get(extra.categorySlug);
+      if (!category) {
+        console.log('Catalog-only product skipped (unknown category):', extra.title, extra.categorySlug);
+        continue;
+      }
+      const bytes = await extraImagesStore.get(extra.imageKey, { type: 'arrayBuffer' });
+      if (!bytes) {
+        console.log('Catalog-only product skipped (missing image blob):', extra.title);
+        continue;
+      }
+      const product = { id: extra.id, title: extra.title, slug: extra.id, isExtra: true };
+      rows.push(product);
+      category.products.push(product);
+      productImages.set(extra.id, [await bufferToDataUri(Buffer.from(bytes), 640, 72)]);
+      extraCount++;
+    }
+  } catch (err) {
+    console.error('Failed to load catalog-only products from Blobs:', err);
+  }
+}
+if (extraCount) console.log('Catalog-only products loaded:', extraCount);
 
 for (const c of CATEGORIES) {
   const src = path.join(PUBLIC_DIR, 'categories', c.cover);
@@ -138,7 +182,10 @@ function productCard(p) {
   const imgs = productImages.get(p.id) || [];
   return `<figure class="card" onclick="openLightbox('${p.id}')">
     <div class="card-img"><img data-pid="${p.id}" alt="${escapeHtml(cleanTitle(p.title))}" loading="lazy"></div>
-    <figcaption>${escapeHtml(cleanTitle(p.title))}${imgs.length > 1 ? `<span class="count-badge">${imgs.length} photos</span>` : ''}</figcaption>
+    <figcaption>${escapeHtml(cleanTitle(p.title))}
+      ${imgs.length > 1 ? `<span class="count-badge">${imgs.length} photos</span>` : ''}
+      ${p.isExtra ? `<span class="exclusive-badge">Exclusif catalogue</span>` : ''}
+    </figcaption>
   </figure>`;
 }
 
@@ -304,6 +351,10 @@ const html = `<!doctype html>
   .card-img img{width:100%;height:100%;object-fit:contain;}
   .card figcaption{padding:10px 12px 14px;font-size:12.5px;text-align:center;color:var(--text);}
   .card figcaption .count-badge{display:block;margin-top:4px;font-size:10.5px;color:var(--text-dim);}
+  .card figcaption .exclusive-badge{
+    display:inline-block;margin-top:6px;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;
+    color:#0c0a0b;background:#e8c76a;padding:2px 7px;border-radius:999px;font-weight:600;
+  }
   .empty-state{grid-column:1/-1;color:var(--text-dim);font-size:13.5px;padding:40px 0;text-align:center;}
 
   nav.pager{display:flex;justify-content:space-between;align-items:center;margin:36px 0 10px;gap:10px;}

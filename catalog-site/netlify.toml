@@ -9,8 +9,16 @@
 #     see src/app/admin/actions.ts) whenever a product/category changes in the database only
 #
 # Required env vars on THIS Netlify site (Site settings > Environment variables):
-#   TURSO_DATABASE_URL, TURSO_AUTH_TOKEN — same values as the main site.
+#   TURSO_DATABASE_URL, TURSO_AUTH_TOKEN — same values as the main site (read-only use).
+#   CATALOG_DASHBOARD_PASSWORD — shared password for the /dashboard.html mini-admin that
+#     lets you add products to THIS catalog only (stored in Netlify Blobs, never touches
+#     Turso/captainmarket). Leave unset to disable the dashboard entirely.
+#   SELF_BUILD_HOOK_URL — this site's own Build Hook URL (Site settings > Build hooks),
+#     so the dashboard can trigger a rebuild after you add/remove a catalog-only product.
 
 [build]
-  command = "npm --prefix .. ci && npm --prefix .. run catalog"
+  command = "npm --prefix .. ci && npm --prefix .. run catalog && cp dashboard.html ../catalog-export/dashboard.html"
   publish = "../catalog-export"
+
+[functions]
+  directory = "functions"

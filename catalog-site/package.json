@@ -1,0 +1,9 @@
+{
+  "name": "catalog-site-functions",
+  "private": true,
+  "description": "Dependencies for the catalog-site Netlify Functions (mini dashboard for catalog-only products). The static catalog build itself runs from ../package.json via netlify.toml's build command.",
+  "dependencies": {
+    "@netlify/blobs": "^11.0.1",
+    "@libsql/client": "^0.17.4"
+  }
+}
