@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "import:shopify": "node scripts/import-shopify.mjs",
-    "catalog": "node --env-file=.env scripts/generate-catalog.mjs"
+    "catalog": "node --env-file-if-exists=.env scripts/generate-catalog.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
