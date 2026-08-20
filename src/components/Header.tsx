@@ -11,81 +11,86 @@ export default function Header() {
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
 
   return (
-    <header className="sticky top-0 z-40 bg-ink/95 backdrop-blur border-b border-white/10">
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8">
-        <div className="flex items-center gap-8 py-5">
-          <button
-            className="md:hidden text-cream"
-            aria-label="Menu"
-            onClick={() => setMobileOpen(true)}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
-              <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
-            </svg>
-          </button>
+    <>
+      <header className="sticky top-0 z-40 bg-ink/95 backdrop-blur border-b border-white/10">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8">
+          <div className="flex items-center gap-8 py-5">
+            <button
+              className="md:hidden text-cream"
+              aria-label="Menu"
+              onClick={() => setMobileOpen(true)}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+                <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+              </svg>
+            </button>
 
-          <Link href="/" className="font-heading text-lg tracking-wide shrink-0">
-            CAPTAINMARKET
-          </Link>
+            <Link href="/" className="font-heading text-lg tracking-wide shrink-0">
+              CAPTAINMARKET
+            </Link>
 
-          <nav className="hidden md:flex items-center gap-1 flex-1">
-            {mainMenu.map((item) => (
-              <div key={item.href} className="group relative">
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1 px-3 py-2 text-sm text-cream/90 hover:text-cream transition-colors"
-                >
-                  {item.title}
+            <nav className="hidden md:flex items-center gap-1 flex-1">
+              {mainMenu.map((item) => (
+                <div key={item.href} className="group relative">
+                  <Link
+                    href={item.href}
+                    className="flex items-center gap-1 px-3 py-2 text-sm text-cream/90 hover:text-cream transition-colors"
+                  >
+                    {item.title}
+                    {item.children && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 mt-0.5">
+                        <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </Link>
                   {item.children && (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 mt-0.5">
-                      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <div className="absolute left-0 top-full hidden group-hover:block bg-ink-3 border border-white/10 rounded-md py-2 min-w-[240px] shadow-xl">
+                      {item.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className="block px-4 py-2 text-sm text-cream/80 hover:text-gold hover:bg-white/5"
+                        >
+                          {child.title}
+                        </Link>
+                      ))}
+                    </div>
                   )}
-                </Link>
-                {item.children && (
-                  <div className="absolute left-0 top-full hidden group-hover:block bg-ink-3 border border-white/10 rounded-md py-2 min-w-[240px] shadow-xl">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className="block px-4 py-2 text-sm text-cream/80 hover:text-gold hover:bg-white/5"
-                      >
-                        {child.title}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+                </div>
+              ))}
+            </nav>
 
-          <div className="flex items-center gap-1 ml-auto">
-            <Link
-              href="/search"
-              aria-label="Recherche"
-              className="hidden sm:flex items-center justify-center w-9 h-9 text-cream hover:text-gold transition-colors"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
-                <circle cx="11" cy="11" r="7" />
-                <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
-              </svg>
-            </Link>
-            <Link
-              href="/account"
-              aria-label="Compte"
-              className="hidden sm:flex items-center justify-center w-9 h-9 text-cream hover:text-gold transition-colors"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
-                <circle cx="12" cy="8" r="3.5" />
-                <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" strokeLinecap="round" />
-              </svg>
-            </Link>
-            <WishlistIcon />
-            <CartTrigger />
+            <div className="flex items-center gap-1 ml-auto">
+              <Link
+                href="/search"
+                aria-label="Recherche"
+                className="hidden sm:flex items-center justify-center w-9 h-9 text-cream hover:text-gold transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+                </svg>
+              </Link>
+              <Link
+                href="/account"
+                aria-label="Compte"
+                className="hidden sm:flex items-center justify-center w-9 h-9 text-cream hover:text-gold transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+                  <circle cx="12" cy="8" r="3.5" />
+                  <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" strokeLinecap="round" />
+                </svg>
+              </Link>
+              <WishlistIcon />
+              <CartTrigger />
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
+      {/* Rendered as a sibling of <header>, not nested inside it — the header's backdrop-blur
+          creates a new containing block that would otherwise trap this fixed-position drawer
+          within the header's own bounds instead of covering the full viewport. */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
@@ -135,10 +140,26 @@ export default function Header() {
                   )}
                 </div>
               ))}
+              <div className="border-t border-white/10 mt-2 pt-2">
+                <Link
+                  href="/search"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-5 py-3 text-sm text-cream/70"
+                >
+                  Search
+                </Link>
+                <Link
+                  href="/account"
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-5 py-3 text-sm text-cream/70"
+                >
+                  Account
+                </Link>
+              </div>
             </nav>
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
