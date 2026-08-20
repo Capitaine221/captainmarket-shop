@@ -179,18 +179,16 @@ export default function ProductForm({
           </button>
         </div>
         <div className="overflow-x-auto -mx-6 px-6">
-          <div className="space-y-2 min-w-[720px]">
-            <div className="grid grid-cols-[1fr_1fr_90px_80px_1fr_1fr_auto] gap-2 text-xs text-neutral-400 px-1">
-              <span>{option1Name || "Option 1"}</span>
-              <span>{option2Name || "Option 2"}</span>
-              <span>Prix</span>
-              <span>Stock</span>
-              <span>SKU</span>
-              <span>Image URL</span>
-              <span />
-            </div>
+          <div className="grid grid-cols-[1fr_1fr_90px_80px_1fr_1fr_auto] gap-2 items-center min-w-[720px]">
+            <span className="text-xs text-neutral-400">{option1Name || "Option 1"}</span>
+            <span className="text-xs text-neutral-400">{option2Name || "Option 2"}</span>
+            <span className="text-xs text-neutral-400">Prix</span>
+            <span className="text-xs text-neutral-400">Stock</span>
+            <span className="text-xs text-neutral-400">SKU</span>
+            <span className="text-xs text-neutral-400">Image URL</span>
+            <span />
             {variants.map((v, i) => (
-              <div key={i} className="grid grid-cols-[1fr_1fr_90px_80px_1fr_1fr_auto] gap-2 items-center">
+              <div key={i} className="contents">
                 <input
                   name="variant_option1"
                   value={v.option1Value ?? ""}
