@@ -8,7 +8,8 @@
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint",
-    "import:shopify": "node scripts/import-shopify.mjs"
+    "import:shopify": "node scripts/import-shopify.mjs",
+    "catalog": "node --env-file=.env scripts/generate-catalog.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
@@ -33,6 +34,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

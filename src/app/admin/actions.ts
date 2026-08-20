@@ -11,6 +11,17 @@ import { safeCompare } from "@/lib/safeCompare";
 const LOGIN_MAX_ATTEMPTS = 5;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 
+// Pings the separate "catalogue de secours" Netlify site's build hook so it regenerates
+// itself from Turso whenever a product/category changes — no manual redeploy needed.
+// No-ops until CATALOG_BUILD_HOOK_URL is set (see catalog-site/netlify.toml for setup).
+function triggerCatalogRebuild() {
+  const hookUrl = process.env.CATALOG_BUILD_HOOK_URL;
+  if (!hookUrl) return;
+  fetch(hookUrl, { method: "POST" }).catch((err) => {
+    console.error("Catalog rebuild trigger failed:", err);
+  });
+}
+
 export async function loginAction(_prevState: { error?: string } | undefined, formData: FormData) {
   const ip = await getClientIp();
   const { allowed, retryAfterMs } = checkRateLimit(`login:${ip}`, LOGIN_MAX_ATTEMPTS, LOGIN_WINDOW_MS);
@@ -48,6 +59,7 @@ export async function createCategory(formData: FormData) {
   await prisma.category.create({ data: { name, slug, description, imageUrl } });
   revalidatePath("/admin/categories");
   revalidatePath("/");
+  triggerCatalogRebuild();
   redirect("/admin/categories");
 }
 
@@ -60,6 +72,7 @@ export async function updateCategory(id: string, formData: FormData) {
   await prisma.category.update({ where: { id }, data: { name, description, imageUrl } });
   revalidatePath("/admin/categories");
   revalidatePath("/");
+  triggerCatalogRebuild();
   redirect("/admin/categories");
 }
 
@@ -67,6 +80,7 @@ export async function deleteCategory(id: string) {
   await prisma.category.delete({ where: { id } });
   revalidatePath("/admin/categories");
   revalidatePath("/");
+  triggerCatalogRebuild();
 }
 
 // ---------- Products ----------
@@ -142,6 +156,7 @@ export async function createProduct(formData: FormData) {
 
   revalidatePath("/admin/products");
   revalidatePath("/");
+  triggerCatalogRebuild();
   redirect("/admin/products");
 }
 
@@ -178,6 +193,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
   revalidatePath("/admin/products");
   revalidatePath("/");
+  triggerCatalogRebuild();
   redirect("/admin/products");
 }
 
@@ -185,4 +201,5 @@ export async function deleteProduct(id: string) {
   await prisma.product.delete({ where: { id } });
   revalidatePath("/admin/products");
   revalidatePath("/");
+  triggerCatalogRebuild();
 }
