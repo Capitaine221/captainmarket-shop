@@ -14,12 +14,39 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 // Pings the separate "catalogue de secours" Netlify site's build hook so it regenerates
 // itself from Turso whenever a product/category changes — no manual redeploy needed.
 // No-ops until CATALOG_BUILD_HOOK_URL is set (see catalog-site/netlify.toml for setup).
-function triggerCatalogRebuild() {
+function triggerNetlifyCatalogRebuild() {
   const hookUrl = process.env.CATALOG_BUILD_HOOK_URL;
   if (!hookUrl) return;
   fetch(hookUrl, { method: "POST" }).catch((err) => {
-    console.error("Catalog rebuild trigger failed:", err);
+    console.error("Netlify catalog rebuild trigger failed:", err);
   });
+}
+
+// Fires the GitHub Actions workflow that rebuilds the GitHub Pages mirror of the catalog
+// (.github/workflows/deploy-catalog-pages.yml) — same idea, different host. No-ops until
+// GITHUB_WORKFLOW_TOKEN is set (a PAT with the "workflow" scope on the shop repo).
+function triggerGithubPagesCatalogRebuild() {
+  const token = process.env.GITHUB_WORKFLOW_TOKEN;
+  const repo = process.env.GITHUB_CATALOG_REPO ?? "Capitaine221/captainmarket-shop";
+  if (!token) return;
+  fetch(`https://api.github.com/repos/${repo}/actions/workflows/deploy-catalog-pages.yml/dispatches`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+    body: JSON.stringify({ ref: "main" }),
+  }).then(async (res) => {
+    if (!res.ok) console.error("GitHub Pages catalog rebuild trigger failed:", res.status, await res.text());
+  }).catch((err) => {
+    console.error("GitHub Pages catalog rebuild trigger failed:", err);
+  });
+}
+
+function triggerCatalogRebuild() {
+  triggerNetlifyCatalogRebuild();
+  triggerGithubPagesCatalogRebuild();
 }
 
 export async function loginAction(_prevState: { error?: string } | undefined, formData: FormData) {
