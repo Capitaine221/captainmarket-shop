@@ -1,0 +1,61 @@
+name: Deploy catalog to GitHub Pages
+
+# Free, public, static mirror of the backup catalog — independent of Netlify entirely.
+# Rebuilds on every push to main (covers new product images) and can be run manually
+# from the Actions tab (Run workflow) after a metadata-only change via /admin.
+#
+# One-time setup required (GitHub web UI, not doable from a push):
+#   1. Settings > Pages > Build and deployment > Source: "GitHub Actions"
+#   2. Settings > Secrets and variables > Actions > New repository secret, twice:
+#      TURSO_DATABASE_URL, TURSO_AUTH_TOKEN (same values as the Netlify sites)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Generate catalog
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: npm run catalog
+
+      - name: Prepare Pages output
+        run: |
+          mkdir -p pages-out
+          cp catalog-export/index.html pages-out/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
