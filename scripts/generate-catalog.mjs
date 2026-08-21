@@ -5,9 +5,10 @@
 //   node --env-file=.env scripts/generate-catalog.mjs
 //
 // Reads products from TURSO_DATABASE_URL (production) if set, otherwise falls back to
-// the local prisma/dev.db. Image bytes always come from the local public/ folder, so make
-// sure your local repo is up to date (git pull) before regenerating after adding a product
-// with a newly-pushed image.
+// the local prisma/dev.db. Image bytes come from either the local public/ folder (seeded
+// images — pull the latest repo before regenerating) or directly from Turso for images
+// uploaded via the admin's file picker (stored in the UploadedImage table, no git push
+// involved at all).
 
 import { createClient } from '@libsql/client';
 import { getStore } from '@netlify/blobs';
@@ -45,7 +46,7 @@ const { rows: imageRows } = await client.execute(`
 // Every real category from the site (mirrors the live nav 1:1 — a product can, and does,
 // show up under several categories here, exactly like on the deployed store).
 const { rows: allCategories } = await client.execute(`
-  SELECT id, name, slug
+  SELECT id, name, slug, imageUrl
   FROM Category
   WHERE slug != 'frontpage'
   ORDER BY createdAt ASC
@@ -71,11 +72,13 @@ for (const r of pcRows) {
 }
 const productById = new Map(rows.map(p => [p.id, p]));
 
-// Cover photo file names that happen to match a category slug (public/categories/<slug>.png).
-// Categories without a matching file fall back to their first product's photo as a banner.
+// Cover photo priority: the category's own imageUrl set in /admin (usually an uploaded
+// image, stored in Turso — see resolveImageBuffer below), then a static file matching the
+// slug (public/categories/<slug>.png), then its first product's photo as a last resort.
 const CATEGORIES = allCategories.map(c => ({
   slug: c.slug,
   label: c.name,
+  imageUrl: c.imageUrl,
   cover: `${c.slug}.png`,
   products: (productsByCategory.get(c.id) || []).map(pid => productById.get(pid)).filter(Boolean),
 }));
@@ -107,14 +110,34 @@ async function bufferToDataUri(input, maxWidth, quality = 76) {
   return `data:image/jpeg;base64,${buf.toString('base64')}`;
 }
 
+// Images come from two places depending on how they were added in /admin:
+//   - seeded/legacy images: a static file checked into public/ (e.g. "/products/xxx.jpg")
+//   - images uploaded via the admin's "Choisir un fichier" button: stored as a blob directly
+//     in Turso (UploadedImage table), served at runtime via /api/images/<id>. These never
+//     touch the git repo, so they must be read from the database here, not the filesystem.
+const uploadedImageIdRe = /^\/api\/images\/([^/?#]+)/;
+async function resolveImageDataUri(url, maxWidth, quality = 76) {
+  const uploadMatch = url.match(uploadedImageIdRe);
+  if (uploadMatch) {
+    const { rows: imgRows } = await client.execute({
+      sql: 'SELECT data FROM UploadedImage WHERE id = ?',
+      args: [uploadMatch[1]],
+    });
+    if (!imgRows[0]) { console.log('MISSING uploaded image (deleted?):', url); return null; }
+    return bufferToDataUri(Buffer.from(imgRows[0].data), maxWidth, quality);
+  }
+  const src = path.join(PUBLIC_DIR, url.replace(/^\//, ''));
+  if (!fs.existsSync(src)) { console.log('MISSING (pull latest repo?):', src); return null; }
+  return toDataUri(src, maxWidth, quality);
+}
+
 const productImages = new Map();
 for (const p of rows) {
   const urls = imagesByProduct.get(p.id) || [];
   const dataUris = [];
   for (const url of urls) {
-    const src = path.join(PUBLIC_DIR, url.replace(/^\//, ''));
-    if (!fs.existsSync(src)) { console.log('MISSING (pull latest repo?):', src); continue; }
-    dataUris.push(await toDataUri(src, 640, 72));
+    const dataUri = await resolveImageDataUri(url, 640, 72);
+    if (dataUri) dataUris.push(dataUri);
   }
   productImages.set(p.id, dataUris);
 }
@@ -154,10 +177,14 @@ if (process.env.NETLIFY_BLOBS_CONTEXT) {
 if (extraCount) console.log('Catalog-only products loaded:', extraCount);
 
 for (const c of CATEGORIES) {
-  const src = path.join(PUBLIC_DIR, 'categories', c.cover);
-  if (fs.existsSync(src)) {
-    c.coverDataUri = await toDataUri(src, 900, 72);
-  } else if (c.products[0]) {
+  if (c.imageUrl) {
+    c.coverDataUri = await resolveImageDataUri(c.imageUrl, 900, 72);
+  }
+  if (!c.coverDataUri) {
+    const src = path.join(PUBLIC_DIR, 'categories', c.cover);
+    if (fs.existsSync(src)) c.coverDataUri = await toDataUri(src, 900, 72);
+  }
+  if (!c.coverDataUri && c.products[0]) {
     // No dedicated cover art for this category — use its first product's photo instead.
     c.coverDataUri = (productImages.get(c.products[0].id) || [])[0] || null;
   }
