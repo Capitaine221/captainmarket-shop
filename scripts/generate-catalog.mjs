@@ -195,8 +195,6 @@ const heroDataUri = fs.existsSync(heroSrc) ? await toDataUri(heroSrc, 1400, 70) 
 
 const activeCats = CATEGORIES;
 
-const today = new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
-
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -444,7 +442,7 @@ const html = `<!doctype html>
 <header class="hero">
   <div class="hero-inner">
     <h1>CAPTAINMARKET</h1>
-    <p>Catalogue produits — version de secours &nbsp;•&nbsp; généré le ${today} &nbsp;•&nbsp; à consulter si le site n'est pas disponible</p>
+    <p>Catalogue produits — version de secours</p>
   </div>
 </header>
 
