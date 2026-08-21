@@ -16,7 +16,7 @@ export default function Hero() {
         <div className="max-w-xl">
           <p className="text-xs uppercase tracking-[0.2em] text-gold mb-4">Est. Curated Resale</p>
           <h1 className="font-heading text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.05] mb-5">
-            Rare Fashion. Verified Authentic.
+            Rare Fashion. Premium quality.
           </h1>
           <p className="text-cream/70 mb-8 max-w-md">
             Streetwear, sneakers, accessories, and fragrance — hand-picked and authenticated for those who
