@@ -12,9 +12,9 @@ export default async function BuildYourWebsitePage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold">Build your website</h1>
+          <h1 className="text-2xl font-semibold">Buy your website</h1>
           <p className="text-sm text-neutral-500 mt-1">
-            Forfaits affichés sur la page publique &quot;Build your website&quot;, accessible depuis le menu principal.
+            Forfaits affichés sur la page publique &quot;Buy your website&quot;, accessible depuis le menu principal.
           </p>
         </div>
         <Link href="/admin/build-your-website/new" className="bg-black text-white px-4 py-2 rounded-md text-sm">

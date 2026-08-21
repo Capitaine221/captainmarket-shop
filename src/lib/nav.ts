@@ -21,11 +21,10 @@ export const mainMenu: NavLink[] = [
       { title: "3ssentials Hoodies and Sweatshirts", href: "/category/essentials-hoodies-and-sweatshirts" },
     ],
   },
-  { title: "Jeans", href: "/category/jeans-collection" },
   { title: "Pants", href: "/category/pants-collectoin" },
   { title: "Perfumes", href: "/category/luxury-perfumes" },
   { title: "Links", href: "/category/links" },
-  { title: "Build your website", href: "/build-your-website" },
+  { title: "Buy your website", href: "/build-your-website" },
 ];
 
 export const footerShopMenu: NavLink[] = [

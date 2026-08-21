@@ -29,12 +29,12 @@ export default function Header() {
               CAPTAINMARKET
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1 flex-1">
+            <nav className="hidden md:flex items-center gap-0.5 flex-1 min-w-0 overflow-x-auto">
               {mainMenu.map((item) => (
-                <div key={item.href} className="group relative">
+                <div key={item.href} className="group relative shrink-0">
                   <Link
                     href={item.href}
-                    className="flex items-center gap-1 px-3 py-2 text-sm text-cream/90 hover:text-cream transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-2 text-sm whitespace-nowrap text-cream/90 hover:text-cream transition-colors"
                   >
                     {item.title}
                     {item.children && (

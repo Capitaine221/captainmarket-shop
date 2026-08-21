@@ -7,10 +7,16 @@ export default async function BuildYourWebsitePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-8 py-14">
-      <h1 className="font-heading text-2xl md:text-3xl mb-2">Build your website</h1>
-      <p className="text-cream/60 text-sm mb-10">
-        Pick a package below and tell us what you have in mind — we&apos;ll take it from there.
-      </p>
+      <h1 className="font-heading text-3xl md:text-4xl mb-6">Your Vision. Your Website.</h1>
+      <div className="text-cream/70 text-sm md:text-base leading-relaxed space-y-4 mb-12 max-w-2xl">
+        <p>Create a professional, modern, and high-performing website designed around your business.</p>
+        <p>
+          We focus on beautiful design, smooth user experience, and real results, while listening closely to your
+          needs and expectations. Every detail is tailored to your brand so your website looks professional, builds
+          trust, and turns visitors into customers.
+        </p>
+        <p className="text-cream font-medium">Your brand deserves a website that stands out.</p>
+      </div>
 
       {packages.length === 0 ? (
         <p className="text-cream/40 text-sm py-16 text-center">No packages available yet.</p>

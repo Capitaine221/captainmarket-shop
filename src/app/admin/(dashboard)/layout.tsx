@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Links
             </Link>
             <Link href="/admin/build-your-website" className="px-3 py-2 rounded hover:bg-neutral-800">
-              Build your website
+              Buy your website
             </Link>
             <Link href="/admin/categories" className="px-3 py-2 rounded hover:bg-neutral-800">
               Catégories
