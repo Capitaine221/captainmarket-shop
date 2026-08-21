@@ -312,3 +312,58 @@ export async function updateLinkProduct(id: string, formData: FormData) {
   triggerCatalogRebuild();
   redirect("/admin/links");
 }
+
+// ---------- Website packages ("Build your website") ----------
+
+export async function createWebsitePackage(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) throw new Error("Le nom est requis.");
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+
+  const last = await prisma.websitePackage.findFirst({ orderBy: { position: "desc" } });
+  const position = (last?.position ?? -1) + 1;
+
+  await prisma.websitePackage.create({ data: { name, description, priceCents, position } });
+
+  revalidatePath("/admin/build-your-website");
+  revalidatePath("/build-your-website");
+  redirect("/admin/build-your-website");
+}
+
+export async function updateWebsitePackage(id: string, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) throw new Error("Le nom est requis.");
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+
+  await prisma.websitePackage.update({ where: { id }, data: { name, description, priceCents } });
+
+  revalidatePath("/admin/build-your-website");
+  revalidatePath("/build-your-website");
+  redirect("/admin/build-your-website");
+}
+
+export async function deleteWebsitePackage(id: string) {
+  await prisma.websitePackage.delete({ where: { id } });
+  revalidatePath("/admin/build-your-website");
+  revalidatePath("/build-your-website");
+}
+
+export async function moveWebsitePackage(id: string, direction: "up" | "down") {
+  const packages = await prisma.websitePackage.findMany({ orderBy: { position: "asc" } });
+  const index = packages.findIndex((p) => p.id === id);
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (index === -1 || targetIndex < 0 || targetIndex >= packages.length) return;
+
+  const current = packages[index];
+  const target = packages[targetIndex];
+
+  await prisma.$transaction([
+    prisma.websitePackage.update({ where: { id: current.id }, data: { position: target.position } }),
+    prisma.websitePackage.update({ where: { id: target.id }, data: { position: current.position } }),
+  ]);
+
+  revalidatePath("/admin/build-your-website");
+  revalidatePath("/build-your-website");
+}
