@@ -215,7 +215,7 @@ export default function ProductInteractive({
               onClick={() => window.open(externalUrl, "_blank", "noopener,noreferrer")}
               className="btn-primary flex-1 py-3.5 text-sm font-semibold"
             >
-              Acheter
+              Buy
             </button>
           ) : (
             <button

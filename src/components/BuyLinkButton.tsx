@@ -14,7 +14,7 @@ export default function BuyLinkButton({ url, className }: { url: string; classNa
         "absolute bottom-0 left-0 right-0 bg-ink/90 backdrop-blur text-cream text-xs font-medium py-2.5 opacity-0 group-hover:opacity-100 transition-opacity"
       }
     >
-      Acheter
+      Buy
     </button>
   );
 }
