@@ -24,6 +24,7 @@ export const mainMenu: NavLink[] = [
   { title: "Jeans", href: "/category/jeans-collection" },
   { title: "Pants", href: "/category/pants-collectoin" },
   { title: "Perfumes", href: "/category/luxury-perfumes" },
+  { title: "Links", href: "/category/links" },
 ];
 
 export const footerShopMenu: NavLink[] = [

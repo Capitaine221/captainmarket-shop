@@ -31,6 +31,7 @@ export default function ProductInteractive({
   images,
   variants,
   optionNames,
+  externalUrl,
 }: {
   productId: string;
   productSlug: string;
@@ -39,6 +40,7 @@ export default function ProductInteractive({
   images: ProductImg[];
   variants: Variant[];
   optionNames: (string | null)[];
+  externalUrl?: string | null;
 }) {
   const activeOptionNames = optionNames.filter((n): n is string => !!n);
   const hasStructuredOptions = activeOptionNames.length > 0;
@@ -191,41 +193,53 @@ export default function ProductInteractive({
           </div>
         ))}
 
-        <div className="flex items-center gap-3 mb-6">
-          <span className="text-xs uppercase tracking-wide text-cream/50">Quantity</span>
-          <div className="flex items-center border border-white/20 rounded-btn">
-            <button type="button" className="w-9 h-9 text-cream/80" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
-              −
-            </button>
-            <span className="w-10 text-center text-sm">{quantity}</span>
-            <button type="button" className="w-9 h-9 text-cream/80" onClick={() => setQuantity((q) => q + 1)}>
-              +
-            </button>
+        {!externalUrl && (
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-xs uppercase tracking-wide text-cream/50">Quantity</span>
+            <div className="flex items-center border border-white/20 rounded-btn">
+              <button type="button" className="w-9 h-9 text-cream/80" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
+                −
+              </button>
+              <span className="w-10 text-center text-sm">{quantity}</span>
+              <button type="button" className="w-9 h-9 text-cream/80" onClick={() => setQuantity((q) => q + 1)}>
+                +
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex gap-3">
-          <button
-            disabled={outOfStock}
-            onClick={() => {
-              if (!matchedVariant) return;
-              addItem(
-                {
-                  variantId: matchedVariant.id,
-                  productId,
-                  productSlug,
-                  title,
-                  variantTitle: matchedVariant.title,
-                  priceCents: matchedVariant.priceCents,
-                  imageUrl: matchedVariant.imageUrl ?? images[0]?.url ?? null,
-                },
-                quantity
-              );
-            }}
-            className="btn-primary flex-1 py-3.5 text-sm font-semibold disabled:opacity-40"
-          >
-            {outOfStock ? "Sold out" : "Add to cart"}
-          </button>
+          {externalUrl ? (
+            <button
+              type="button"
+              onClick={() => window.open(externalUrl, "_blank", "noopener,noreferrer")}
+              className="btn-primary flex-1 py-3.5 text-sm font-semibold"
+            >
+              Acheter
+            </button>
+          ) : (
+            <button
+              disabled={outOfStock}
+              onClick={() => {
+                if (!matchedVariant) return;
+                addItem(
+                  {
+                    variantId: matchedVariant.id,
+                    productId,
+                    productSlug,
+                    title,
+                    variantTitle: matchedVariant.title,
+                    priceCents: matchedVariant.priceCents,
+                    imageUrl: matchedVariant.imageUrl ?? images[0]?.url ?? null,
+                  },
+                  quantity
+                );
+              }}
+              className="btn-primary flex-1 py-3.5 text-sm font-semibold disabled:opacity-40"
+            >
+              {outOfStock ? "Sold out" : "Add to cart"}
+            </button>
+          )}
           <WishlistButton slug={productSlug} className="w-12 h-12 shrink-0 !rounded-btn border border-white/20 !bg-transparent" />
         </div>
       </div>

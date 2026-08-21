@@ -3,12 +3,14 @@ import Image from "next/image";
 import { formatCents } from "@/lib/money";
 import WishlistButton from "./WishlistButton";
 import QuickAddButton from "./QuickAddButton";
+import BuyLinkButton from "./BuyLinkButton";
 
 type CardProduct = {
   id: string;
   slug: string;
   title: string;
   vendor: string | null;
+  externalUrl?: string | null;
   images: { url: string }[];
   variants: { id: string; title: string; priceCents: number; inventoryQuantity: number }[];
 };
@@ -42,14 +44,18 @@ export default function ProductCard({ product }: { product: CardProduct }) {
           </span>
         )}
         <WishlistButton slug={product.slug} className="absolute top-3 right-3" />
-        {product.variants.length === 1 && (
-          <QuickAddButton
-            productId={product.id}
-            productSlug={product.slug}
-            title={product.title}
-            imageUrl={product.images[0]?.url ?? null}
-            variant={product.variants[0]}
-          />
+        {product.externalUrl ? (
+          <BuyLinkButton url={product.externalUrl} />
+        ) : (
+          product.variants.length === 1 && (
+            <QuickAddButton
+              productId={product.id}
+              productSlug={product.slug}
+              title={product.title}
+              imageUrl={product.images[0]?.url ?? null}
+              variant={product.variants[0]}
+            />
+          )
         )}
       </div>
       <div className="mt-3">

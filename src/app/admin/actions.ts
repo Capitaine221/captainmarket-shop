@@ -227,6 +227,88 @@ export async function updateProduct(id: string, formData: FormData) {
 export async function deleteProduct(id: string) {
   await prisma.product.delete({ where: { id } });
   revalidatePath("/admin/products");
+  revalidatePath("/admin/links");
   revalidatePath("/");
   triggerCatalogRebuild();
+}
+
+// ---------- Link products (digital products with an external "Acheter" link) ----------
+
+async function ensureLinksCategory() {
+  return prisma.category.upsert({
+    where: { slug: "links" },
+    update: {},
+    create: { name: "Links", slug: "links" },
+  });
+}
+
+export async function createLinkProduct(formData: FormData) {
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) throw new Error("Le titre est requis.");
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const status = String(formData.get("status") ?? "ACTIVE");
+  const externalUrl = String(formData.get("externalUrl") ?? "").trim();
+  if (!externalUrl) throw new Error("Le lien externe est requis.");
+  const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+  const images = parseImagesFromForm(formData);
+
+  let slug = slugify(title);
+  const existing = await prisma.product.findUnique({ where: { slug } });
+  if (existing) slug = `${slug}-${Date.now().toString(36)}`;
+
+  const linksCategory = await ensureLinksCategory();
+
+  await prisma.product.create({
+    data: {
+      title,
+      slug,
+      description,
+      status,
+      externalUrl,
+      variants: { create: [{ title: "Default", priceCents, inventoryQuantity: 999999 }] },
+      images: { create: images.map((url, position) => ({ url, position })) },
+      categories: { create: [{ categoryId: linksCategory.id }] },
+    },
+  });
+
+  revalidatePath("/admin/links");
+  revalidatePath("/");
+  triggerCatalogRebuild();
+  redirect("/admin/links");
+}
+
+export async function updateLinkProduct(id: string, formData: FormData) {
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) throw new Error("Le titre est requis.");
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const status = String(formData.get("status") ?? "ACTIVE");
+  const externalUrl = String(formData.get("externalUrl") ?? "").trim();
+  if (!externalUrl) throw new Error("Le lien externe est requis.");
+  const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+  const images = parseImagesFromForm(formData);
+
+  const linksCategory = await ensureLinksCategory();
+
+  await prisma.$transaction([
+    prisma.productVariant.deleteMany({ where: { productId: id } }),
+    prisma.productImage.deleteMany({ where: { productId: id } }),
+    prisma.productCategory.deleteMany({ where: { productId: id } }),
+    prisma.product.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        status,
+        externalUrl,
+        variants: { create: [{ title: "Default", priceCents, inventoryQuantity: 999999 }] },
+        images: { create: images.map((url, position) => ({ url, position })) },
+        categories: { create: [{ categoryId: linksCategory.id }] },
+      },
+    }),
+  ]);
+
+  revalidatePath("/admin/links");
+  revalidatePath("/");
+  triggerCatalogRebuild();
+  redirect("/admin/links");
 }

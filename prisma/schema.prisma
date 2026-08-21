@@ -36,6 +36,7 @@ model Product {
   option1Name String?
   option2Name String?
   option3Name String?
+  externalUrl String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

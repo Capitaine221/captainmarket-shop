@@ -28,6 +28,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         images={product.images}
         variants={product.variants}
         optionNames={[product.option1Name, product.option2Name, product.option3Name]}
+        externalUrl={product.externalUrl}
       />
 
       <div className="md:grid md:grid-cols-2 md:gap-12">

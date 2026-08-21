@@ -6,9 +6,9 @@ import { deleteProduct } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProductsPage() {
+export default async function LinksPage() {
   const products = await prisma.product.findMany({
-    where: { externalUrl: null },
+    where: { externalUrl: { not: null } },
     orderBy: { createdAt: "desc" },
     include: { images: { orderBy: { position: "asc" }, take: 1 }, variants: true },
   });
@@ -16,9 +16,14 @@ export default async function ProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Produits</h1>
-        <Link href="/admin/products/new" className="bg-black text-white px-4 py-2 rounded-md text-sm">
-          + Nouveau produit
+        <div>
+          <h1 className="text-2xl font-semibold">Links</h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Produits digitaux dont le bouton &quot;Acheter&quot; renvoie vers un lien externe au lieu du paiement Stripe.
+          </p>
+        </div>
+        <Link href="/admin/links/new" className="bg-black text-white px-4 py-2 rounded-md text-sm">
+          + Nouveau lien
         </Link>
       </div>
 
@@ -30,14 +35,13 @@ export default async function ProductsPage() {
               <th className="px-4 py-3">Titre</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Prix</th>
-              <th className="px-4 py-3">Stock</th>
+              <th className="px-4 py-3">Lien</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {products.map((p) => {
-              const minPrice = Math.min(...p.variants.map((v) => v.priceCents));
-              const stock = p.variants.reduce((sum, v) => sum + v.inventoryQuantity, 0);
+              const price = p.variants[0]?.priceCents ?? 0;
               return (
                 <tr key={p.id} className="border-t border-neutral-100">
                   <td className="px-4 py-2 w-16">
@@ -63,10 +67,14 @@ export default async function ProductsPage() {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{formatCents(minPrice || 0)}</td>
-                  <td className="px-4 py-3">{stock}</td>
+                  <td className="px-4 py-3">{formatCents(price)}</td>
+                  <td className="px-4 py-3 max-w-[220px] truncate">
+                    <a href={p.externalUrl ?? "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {p.externalUrl}
+                    </a>
+                  </td>
                   <td className="px-4 py-3 text-right space-x-3">
-                    <Link href={`/admin/products/${p.id}`} className="text-blue-600 hover:underline">
+                    <Link href={`/admin/links/${p.id}`} className="text-blue-600 hover:underline">
                       Modifier
                     </Link>
                     <form action={deleteProduct.bind(null, p.id)} className="inline">
@@ -79,7 +87,7 @@ export default async function ProductsPage() {
             {products.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-neutral-400">
-                  Aucun produit pour l&apos;instant.
+                  Aucun lien pour l&apos;instant.
                 </td>
               </tr>
             )}
