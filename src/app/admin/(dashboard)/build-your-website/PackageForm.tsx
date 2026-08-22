@@ -4,7 +4,8 @@ type WebsitePackage = {
   id: string;
   name: string;
   description: string | null;
-  priceCents: number;
+  priceMinCents: number;
+  priceMaxCents: number | null;
 };
 
 export default function PackageForm({
@@ -26,17 +27,31 @@ export default function PackageForm({
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Prix</label>
-        <input
-          name="price"
-          type="number"
-          step="0.01"
-          min="0"
-          defaultValue={pkg ? pkg.priceCents / 100 : undefined}
-          required
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Prix minimum</label>
+          <input
+            name="priceMin"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={pkg ? pkg.priceMinCents / 100 : undefined}
+            required
+            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Prix maximum (optionnel)</label>
+          <input
+            name="priceMax"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={pkg?.priceMaxCents != null ? pkg.priceMaxCents / 100 : undefined}
+            placeholder="Laisser vide pour un prix fixe"
+            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          />
+        </div>
       </div>
 
       <div>

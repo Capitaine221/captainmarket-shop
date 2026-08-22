@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatCents } from "@/lib/money";
+import { formatPriceRange } from "@/lib/money";
 import { deleteWebsitePackage, moveWebsitePackage } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +51,7 @@ export default async function BuildYourWebsitePage() {
                   </div>
                 </td>
                 <td className="px-4 py-3 font-medium">{p.name}</td>
-                <td className="px-4 py-3">{formatCents(p.priceCents)}</td>
+                <td className="px-4 py-3">{formatPriceRange(p.priceMinCents, p.priceMaxCents)}</td>
                 <td className="px-4 py-3 max-w-[320px] truncate text-neutral-500">{p.description}</td>
                 <td className="px-4 py-3 text-right space-x-3">
                   <Link href={`/admin/build-your-website/${p.id}`} className="text-blue-600 hover:underline">

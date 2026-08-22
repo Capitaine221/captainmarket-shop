@@ -315,16 +315,23 @@ export async function updateLinkProduct(id: string, formData: FormData) {
 
 // ---------- Website packages ("Build your website") ----------
 
+function parsePriceRangeFromForm(formData: FormData) {
+  const priceMinCents = Math.round(parseFloat(String(formData.get("priceMin") ?? "0")) * 100);
+  const priceMaxRaw = String(formData.get("priceMax") ?? "").trim();
+  const priceMaxCents = priceMaxRaw ? Math.round(parseFloat(priceMaxRaw) * 100) : null;
+  return { priceMinCents, priceMaxCents };
+}
+
 export async function createWebsitePackage(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Le nom est requis.");
   const description = String(formData.get("description") ?? "").trim() || null;
-  const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+  const { priceMinCents, priceMaxCents } = parsePriceRangeFromForm(formData);
 
   const last = await prisma.websitePackage.findFirst({ orderBy: { position: "desc" } });
   const position = (last?.position ?? -1) + 1;
 
-  await prisma.websitePackage.create({ data: { name, description, priceCents, position } });
+  await prisma.websitePackage.create({ data: { name, description, priceMinCents, priceMaxCents, position } });
 
   revalidatePath("/admin/build-your-website");
   revalidatePath("/build-your-website");
@@ -335,9 +342,9 @@ export async function updateWebsitePackage(id: string, formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("Le nom est requis.");
   const description = String(formData.get("description") ?? "").trim() || null;
-  const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+  const { priceMinCents, priceMaxCents } = parsePriceRangeFromForm(formData);
 
-  await prisma.websitePackage.update({ where: { id }, data: { name, description, priceCents } });
+  await prisma.websitePackage.update({ where: { id }, data: { name, description, priceMinCents, priceMaxCents } });
 
   revalidatePath("/admin/build-your-website");
   revalidatePath("/build-your-website");

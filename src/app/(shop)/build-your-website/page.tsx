@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatCents } from "@/lib/money";
+import { formatPriceRange } from "@/lib/money";
 
 export default async function BuildYourWebsitePage() {
   const packages = await prisma.websitePackage.findMany({ orderBy: { position: "asc" } });
@@ -29,7 +29,7 @@ export default async function BuildYourWebsitePage() {
               className="block bg-ink-3 rounded-3xl px-8 py-6 hover:bg-ink-2 transition-colors"
             >
               <p className="font-heading font-bold text-xl md:text-2xl mb-1">
-                {pkg.name}: {formatCents(pkg.priceCents)}
+                {pkg.name}: {formatPriceRange(pkg.priceMinCents, pkg.priceMaxCents)}
               </p>
               {pkg.description && <p className="font-medium text-sm md:text-base text-cream/70">{pkg.description}</p>}
             </Link>
