@@ -4,6 +4,7 @@ import { useState } from "react";
 import ImageUrlField from "../ImageUrlField";
 
 type Variant = {
+  id?: string;
   title: string;
   priceCents: number;
   onSale?: boolean;
@@ -218,6 +219,7 @@ export default function ProductForm({
             <span />
             {variants.map((v, i) => (
               <div key={i} className="contents">
+                <input type="hidden" name="variant_id" value={v.id ?? ""} />
                 <input
                   name="variant_option1"
                   value={v.option1Value ?? ""}

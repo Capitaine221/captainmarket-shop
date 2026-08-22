@@ -113,6 +113,7 @@ export async function deleteCategory(id: string) {
 // ---------- Products ----------
 
 type VariantInput = {
+  id?: string;
   title: string;
   priceCents: number;
   onSale: boolean;
@@ -125,6 +126,7 @@ type VariantInput = {
 };
 
 function parseVariantsFromForm(formData: FormData): VariantInput[] {
+  const ids = formData.getAll("variant_id") as string[];
   const opt1Values = formData.getAll("variant_option1") as string[];
   const opt2Values = formData.getAll("variant_option2") as string[];
   const prices = formData.getAll("variant_price") as string[];
@@ -136,6 +138,7 @@ function parseVariantsFromForm(formData: FormData): VariantInput[] {
 
   const variants: VariantInput[] = [];
   for (let i = 0; i < prices.length; i++) {
+    const id = (ids[i] ?? "").trim() || undefined;
     const option1Value = (opt1Values[i] ?? "").trim() || undefined;
     const option2Value = (opt2Values[i] ?? "").trim() || undefined;
     const title = [option1Value, option2Value].filter(Boolean).join(" / ") || "Default";
@@ -146,7 +149,7 @@ function parseVariantsFromForm(formData: FormData): VariantInput[] {
     const inventoryQuantity = parseInt(stocks[i] || "0", 10) || 0;
     const sku = (skus[i] ?? "").trim() || undefined;
     const imageUrl = (imageUrls[i] ?? "").trim() || undefined;
-    variants.push({ title, priceCents, onSale, salePriceCents, inventoryQuantity, sku, option1Value, option2Value, imageUrl });
+    variants.push({ id, title, priceCents, onSale, salePriceCents, inventoryQuantity, sku, option1Value, option2Value, imageUrl });
   }
   if (variants.length === 0) {
     variants.push({ title: "Default", priceCents: 0, onSale: false, salePriceCents: null, inventoryQuantity: 0 });
@@ -206,24 +209,56 @@ export async function updateProduct(id: string, formData: FormData) {
   const variants = parseVariantsFromForm(formData);
   const images = parseImagesFromForm(formData);
 
-  await prisma.$transaction([
-    prisma.productVariant.deleteMany({ where: { productId: id } }),
-    prisma.productImage.deleteMany({ where: { productId: id } }),
-    prisma.productCategory.deleteMany({ where: { productId: id } }),
-    prisma.product.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        status,
-        option1Name,
-        option2Name,
-        variants: { create: variants },
-        images: { create: images.map((url, position) => ({ url, position })) },
-        categories: { create: categoryIds.map((categoryId) => ({ categoryId })) },
-      },
-    }),
-  ]);
+  // Existing variants are updated in place (not deleted+recreated) so that variant ids referenced
+  // by past OrderItems stay valid — deleting an ordered variant hits a foreign key constraint.
+  const existingVariants = await prisma.productVariant.findMany({ where: { productId: id }, select: { id: true } });
+  const existingIds = new Set(existingVariants.map((v) => v.id));
+  const submittedIds = new Set(variants.filter((v) => v.id).map((v) => v.id));
+  const idsToDelete = [...existingIds].filter((existingId) => !submittedIds.has(existingId));
+  const toUpdate = variants.filter((v) => v.id && existingIds.has(v.id));
+  const toCreate = variants.filter((v) => !v.id || !existingIds.has(v.id));
+
+  try {
+    await prisma.$transaction([
+      ...(idsToDelete.length ? [prisma.productVariant.deleteMany({ where: { id: { in: idsToDelete } } })] : []),
+      ...toUpdate.map((v) =>
+        prisma.productVariant.update({
+          where: { id: v.id },
+          data: {
+            title: v.title,
+            priceCents: v.priceCents,
+            onSale: v.onSale,
+            salePriceCents: v.salePriceCents,
+            inventoryQuantity: v.inventoryQuantity,
+            sku: v.sku ?? null,
+            option1Value: v.option1Value ?? null,
+            option2Value: v.option2Value ?? null,
+            imageUrl: v.imageUrl ?? null,
+          },
+        })
+      ),
+      prisma.productImage.deleteMany({ where: { productId: id } }),
+      prisma.productCategory.deleteMany({ where: { productId: id } }),
+      prisma.product.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          status,
+          option1Name,
+          option2Name,
+          variants: { create: toCreate },
+          images: { create: images.map((url, position) => ({ url, position })) },
+          categories: { create: categoryIds.map((categoryId) => ({ categoryId })) },
+        },
+      }),
+    ]);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("FOREIGN KEY constraint failed")) {
+      throw new Error("Impossible de retirer une variante déjà présente dans une commande passée.");
+    }
+    throw e;
+  }
 
   revalidatePath("/admin/products");
   revalidatePath("/");
