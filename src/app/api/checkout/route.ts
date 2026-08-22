@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { effectivePriceCents } from "@/lib/money";
 
 type IncomingItem = { variantId: string; quantity: number };
 
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
       productId: variant.productId,
       title: variant.product.title,
       variantTitle: variant.title,
-      priceCents: variant.priceCents,
+      priceCents: effectivePriceCents(variant),
       quantity,
       imageUrl: variant.product.images[0]?.url,
     });

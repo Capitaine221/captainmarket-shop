@@ -38,6 +38,7 @@ export default async function ProductsPage() {
             {products.map((p) => {
               const minPrice = Math.min(...p.variants.map((v) => v.priceCents));
               const stock = p.variants.reduce((sum, v) => sum + v.inventoryQuantity, 0);
+              const onSale = p.variants.some((v) => v.onSale);
               return (
                 <tr key={p.id} className="border-t border-neutral-100">
                   <td className="px-4 py-2 w-16">
@@ -63,7 +64,14 @@ export default async function ProductsPage() {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{formatCents(minPrice || 0)}</td>
+                  <td className="px-4 py-3">
+                    {formatCents(minPrice || 0)}
+                    {onSale && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] uppercase bg-amber-100 text-amber-700">
+                        Sale
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{stock}</td>
                   <td className="px-4 py-3 text-right space-x-3">
                     <Link href={`/admin/products/${p.id}`} className="text-blue-600 hover:underline">

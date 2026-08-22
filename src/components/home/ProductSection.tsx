@@ -7,7 +7,14 @@ type CardProduct = {
   title: string;
   vendor: string | null;
   images: { url: string }[];
-  variants: { id: string; title: string; priceCents: number; inventoryQuantity: number }[];
+  variants: {
+    id: string;
+    title: string;
+    priceCents: number;
+    onSale: boolean;
+    salePriceCents: number | null;
+    inventoryQuantity: number;
+  }[];
 };
 
 export default function ProductSection({

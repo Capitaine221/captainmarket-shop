@@ -115,6 +115,8 @@ export async function deleteCategory(id: string) {
 type VariantInput = {
   title: string;
   priceCents: number;
+  onSale: boolean;
+  salePriceCents: number | null;
   inventoryQuantity: number;
   sku?: string;
   option1Value?: string;
@@ -126,6 +128,8 @@ function parseVariantsFromForm(formData: FormData): VariantInput[] {
   const opt1Values = formData.getAll("variant_option1") as string[];
   const opt2Values = formData.getAll("variant_option2") as string[];
   const prices = formData.getAll("variant_price") as string[];
+  const onSaleFlags = formData.getAll("variant_onsale") as string[];
+  const salePrices = formData.getAll("variant_saleprice") as string[];
   const stocks = formData.getAll("variant_stock") as string[];
   const skus = formData.getAll("variant_sku") as string[];
   const imageUrls = formData.getAll("variant_image") as string[];
@@ -136,13 +140,16 @@ function parseVariantsFromForm(formData: FormData): VariantInput[] {
     const option2Value = (opt2Values[i] ?? "").trim() || undefined;
     const title = [option1Value, option2Value].filter(Boolean).join(" / ") || "Default";
     const priceCents = Math.round(parseFloat(prices[i] || "0") * 100);
+    const onSale = onSaleFlags[i] === "true";
+    const salePriceRaw = (salePrices[i] ?? "").trim();
+    const salePriceCents = onSale && salePriceRaw ? Math.round(parseFloat(salePriceRaw) * 100) : null;
     const inventoryQuantity = parseInt(stocks[i] || "0", 10) || 0;
     const sku = (skus[i] ?? "").trim() || undefined;
     const imageUrl = (imageUrls[i] ?? "").trim() || undefined;
-    variants.push({ title, priceCents, inventoryQuantity, sku, option1Value, option2Value, imageUrl });
+    variants.push({ title, priceCents, onSale, salePriceCents, inventoryQuantity, sku, option1Value, option2Value, imageUrl });
   }
   if (variants.length === 0) {
-    variants.push({ title: "Default", priceCents: 0, inventoryQuantity: 0 });
+    variants.push({ title: "Default", priceCents: 0, onSale: false, salePriceCents: null, inventoryQuantity: 0 });
   }
   return variants;
 }
@@ -242,6 +249,13 @@ async function ensureLinksCategory() {
   });
 }
 
+function parseSaleFromForm(formData: FormData) {
+  const onSale = formData.get("onSale") === "on";
+  const salePriceRaw = String(formData.get("salePrice") ?? "").trim();
+  const salePriceCents = onSale && salePriceRaw ? Math.round(parseFloat(salePriceRaw) * 100) : null;
+  return { onSale, salePriceCents };
+}
+
 export async function createLinkProduct(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   if (!title) throw new Error("Le titre est requis.");
@@ -250,6 +264,7 @@ export async function createLinkProduct(formData: FormData) {
   const externalUrl = String(formData.get("externalUrl") ?? "").trim();
   if (!externalUrl) throw new Error("Le lien externe est requis.");
   const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+  const { onSale, salePriceCents } = parseSaleFromForm(formData);
   const images = parseImagesFromForm(formData);
 
   let slug = slugify(title);
@@ -265,7 +280,7 @@ export async function createLinkProduct(formData: FormData) {
       description,
       status,
       externalUrl,
-      variants: { create: [{ title: "Default", priceCents, inventoryQuantity: 999999 }] },
+      variants: { create: [{ title: "Default", priceCents, onSale, salePriceCents, inventoryQuantity: 999999 }] },
       images: { create: images.map((url, position) => ({ url, position })) },
       categories: { create: [{ categoryId: linksCategory.id }] },
     },
@@ -285,6 +300,7 @@ export async function updateLinkProduct(id: string, formData: FormData) {
   const externalUrl = String(formData.get("externalUrl") ?? "").trim();
   if (!externalUrl) throw new Error("Le lien externe est requis.");
   const priceCents = Math.round(parseFloat(String(formData.get("price") ?? "0")) * 100);
+  const { onSale, salePriceCents } = parseSaleFromForm(formData);
   const images = parseImagesFromForm(formData);
 
   const linksCategory = await ensureLinksCategory();
@@ -300,7 +316,7 @@ export async function updateLinkProduct(id: string, formData: FormData) {
         description,
         status,
         externalUrl,
-        variants: { create: [{ title: "Default", priceCents, inventoryQuantity: 999999 }] },
+        variants: { create: [{ title: "Default", priceCents, onSale, salePriceCents, inventoryQuantity: 999999 }] },
         images: { create: images.map((url, position) => ({ url, position })) },
         categories: { create: [{ categoryId: linksCategory.id }] },
       },
@@ -327,11 +343,14 @@ export async function createWebsitePackage(formData: FormData) {
   if (!name) throw new Error("Le nom est requis.");
   const description = String(formData.get("description") ?? "").trim() || null;
   const { priceMinCents, priceMaxCents } = parsePriceRangeFromForm(formData);
+  const { onSale, salePriceCents } = parseSaleFromForm(formData);
 
   const last = await prisma.websitePackage.findFirst({ orderBy: { position: "desc" } });
   const position = (last?.position ?? -1) + 1;
 
-  await prisma.websitePackage.create({ data: { name, description, priceMinCents, priceMaxCents, position } });
+  await prisma.websitePackage.create({
+    data: { name, description, priceMinCents, priceMaxCents, onSale, salePriceCents, position },
+  });
 
   revalidatePath("/admin/build-your-website");
   revalidatePath("/build-your-website");
@@ -343,8 +362,12 @@ export async function updateWebsitePackage(id: string, formData: FormData) {
   if (!name) throw new Error("Le nom est requis.");
   const description = String(formData.get("description") ?? "").trim() || null;
   const { priceMinCents, priceMaxCents } = parsePriceRangeFromForm(formData);
+  const { onSale, salePriceCents } = parseSaleFromForm(formData);
 
-  await prisma.websitePackage.update({ where: { id }, data: { name, description, priceMinCents, priceMaxCents } });
+  await prisma.websitePackage.update({
+    where: { id },
+    data: { name, description, priceMinCents, priceMaxCents, onSale, salePriceCents },
+  });
 
   revalidatePath("/admin/build-your-website");
   revalidatePath("/build-your-website");

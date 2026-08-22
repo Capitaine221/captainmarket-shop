@@ -67,7 +67,14 @@ export default async function LinksPage() {
                       {p.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{formatCents(price)}</td>
+                  <td className="px-4 py-3">
+                    {formatCents(price)}
+                    {p.variants[0]?.onSale && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] uppercase bg-amber-100 text-amber-700">
+                        Sale
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 max-w-[220px] truncate">
                     <a href={p.externalUrl ?? "#"} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                       {p.externalUrl}

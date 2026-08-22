@@ -9,7 +9,7 @@ type LinkProduct = {
   description: string | null;
   status: string;
   externalUrl: string | null;
-  variants: { priceCents: number }[];
+  variants: { priceCents: number; onSale: boolean; salePriceCents: number | null }[];
   images: { url: string }[];
 };
 
@@ -23,6 +23,7 @@ export default function LinkProductForm({
   const [images, setImages] = useState<string[]>(
     product?.images.length ? product.images.map((i) => i.url) : [""]
   );
+  const [onSale, setOnSale] = useState(product?.variants[0]?.onSale ?? false);
 
   return (
     <form action={action} className="max-w-2xl space-y-6 bg-white p-6 rounded-lg border border-neutral-200">
@@ -57,6 +58,27 @@ export default function LinkProductForm({
             defaultValue={product ? product.variants[0]?.priceCents / 100 : undefined}
             required
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="flex items-center gap-2 text-sm font-medium mb-1">
+            <input
+              type="checkbox"
+              name="onSale"
+              checked={onSale}
+              onChange={(e) => setOnSale(e.target.checked)}
+            />
+            En réduction
+          </label>
+          <input
+            name="salePrice"
+            type="number"
+            step="0.01"
+            min="0"
+            disabled={!onSale}
+            defaultValue={product?.variants[0]?.salePriceCents != null ? product.variants[0].salePriceCents / 100 : undefined}
+            placeholder="Prix réduit"
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 disabled:bg-neutral-100 disabled:text-neutral-400"
           />
         </div>
         <div className="flex-1">

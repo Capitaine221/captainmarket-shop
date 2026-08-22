@@ -14,14 +14,16 @@ model UploadedImage {
 }
 
 model WebsitePackage {
-  id            String   @id @default(cuid())
-  name          String
-  priceMinCents Int
-  priceMaxCents Int?
-  description   String?
-  position      Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  priceMinCents  Int
+  priceMaxCents  Int?
+  onSale         Boolean  @default(false)
+  salePriceCents Int?
+  description    String?
+  position       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Category {
@@ -69,6 +71,8 @@ model ProductVariant {
   id                String  @id @default(cuid())
   title             String
   priceCents        Int
+  onSale            Boolean @default(false)
+  salePriceCents    Int?
   inventoryQuantity Int     @default(0)
   sku               String?
   option1Value      String?

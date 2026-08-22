@@ -1,8 +1,16 @@
 "use client";
 
 import { useCart } from "@/lib/cart";
+import { effectivePriceCents } from "@/lib/money";
 
-type Variant = { id: string; title: string; priceCents: number; inventoryQuantity: number };
+type Variant = {
+  id: string;
+  title: string;
+  priceCents: number;
+  onSale: boolean;
+  salePriceCents: number | null;
+  inventoryQuantity: number;
+};
 
 export default function QuickAddButton({
   productId,
@@ -33,7 +41,7 @@ export default function QuickAddButton({
           productSlug,
           title,
           variantTitle: variant.title,
-          priceCents: variant.priceCents,
+          priceCents: effectivePriceCents(variant),
           imageUrl,
         });
       }}

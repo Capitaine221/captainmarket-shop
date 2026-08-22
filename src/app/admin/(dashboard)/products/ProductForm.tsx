@@ -6,6 +6,8 @@ import ImageUrlField from "../ImageUrlField";
 type Variant = {
   title: string;
   priceCents: number;
+  onSale?: boolean;
+  salePriceCents?: number | null;
   inventoryQuantity: number;
   sku?: string | null;
   option1Value?: string | null;
@@ -41,7 +43,19 @@ export default function ProductForm({
   const [variants, setVariants] = useState<Variant[]>(
     product?.variants.length
       ? product.variants.map((v) => ({ ...v }))
-      : [{ title: "Default", priceCents: 0, inventoryQuantity: 0, sku: "", option1Value: "", option2Value: "", imageUrl: "" }]
+      : [
+          {
+            title: "Default",
+            priceCents: 0,
+            onSale: false,
+            salePriceCents: null,
+            inventoryQuantity: 0,
+            sku: "",
+            option1Value: "",
+            option2Value: "",
+            imageUrl: "",
+          },
+        ]
   );
   const [images, setImages] = useState<string[]>(
     product?.images.length ? product.images.map((i) => i.url) : [""]
@@ -173,7 +187,17 @@ export default function ProductForm({
             onClick={() =>
               setVariants([
                 ...variants,
-                { title: "", priceCents: 0, inventoryQuantity: 0, sku: "", option1Value: "", option2Value: "", imageUrl: "" },
+                {
+                  title: "",
+                  priceCents: 0,
+                  onSale: false,
+                  salePriceCents: null,
+                  inventoryQuantity: 0,
+                  sku: "",
+                  option1Value: "",
+                  option2Value: "",
+                  imageUrl: "",
+                },
               ])
             }
             className="text-sm text-blue-600"
@@ -182,10 +206,12 @@ export default function ProductForm({
           </button>
         </div>
         <div className="overflow-x-auto -mx-6 px-6">
-          <div className="grid grid-cols-[1fr_1fr_90px_80px_1fr_1fr_auto] gap-2 items-center min-w-[720px]">
+          <div className="grid grid-cols-[1fr_1fr_90px_70px_100px_80px_1fr_1fr_auto] gap-2 items-center min-w-[1020px]">
             <span className="text-xs text-neutral-400">{option1Name || "Option 1"}</span>
             <span className="text-xs text-neutral-400">{option2Name || "Option 2"}</span>
             <span className="text-xs text-neutral-400">Prix</span>
+            <span className="text-xs text-neutral-400">En réduction</span>
+            <span className="text-xs text-neutral-400">Prix réduit</span>
             <span className="text-xs text-neutral-400">Stock</span>
             <span className="text-xs text-neutral-400">SKU</span>
             <span className="text-xs text-neutral-400">Image URL</span>
@@ -226,6 +252,36 @@ export default function ProductForm({
                     setVariants(next);
                   }}
                   className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                />
+                <div className="flex justify-center">
+                  <input
+                    type="checkbox"
+                    checked={v.onSale ?? false}
+                    onChange={(e) => {
+                      const next = [...variants];
+                      next[i] = { ...next[i], onSale: e.target.checked };
+                      setVariants(next);
+                    }}
+                  />
+                </div>
+                <input type="hidden" name="variant_onsale" value={v.onSale ? "true" : "false"} />
+                <input
+                  name="variant_saleprice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  disabled={!v.onSale}
+                  value={v.onSale && v.salePriceCents != null ? v.salePriceCents / 100 : ""}
+                  onChange={(e) => {
+                    const next = [...variants];
+                    next[i] = {
+                      ...next[i],
+                      salePriceCents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null,
+                    };
+                    setVariants(next);
+                  }}
+                  placeholder="Prix réduit"
+                  className="rounded-md border border-neutral-300 px-3 py-2 text-sm disabled:bg-neutral-100 disabled:text-neutral-400"
                 />
                 <input
                   name="variant_stock"

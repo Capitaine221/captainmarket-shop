@@ -3,13 +3,15 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
-import { formatCents } from "@/lib/money";
+import { effectivePriceCents, formatCents } from "@/lib/money";
 import WishlistButton from "@/components/WishlistButton";
 
 type Variant = {
   id: string;
   title: string;
   priceCents: number;
+  onSale: boolean;
+  salePriceCents: number | null;
   inventoryQuantity: number;
   option1Value: string | null;
   option2Value: string | null;
@@ -166,7 +168,19 @@ export default function ProductInteractive({
         {vendor && <p className="text-xs uppercase tracking-wide text-cream/40 mb-2">{vendor}</p>}
         <h1 className="font-heading text-2xl md:text-3xl mb-4">{title}</h1>
 
-        <div className="text-2xl font-heading mb-6">{matchedVariant ? formatCents(matchedVariant.priceCents) : ""}</div>
+        <div className="flex items-center gap-3 mb-6">
+          {matchedVariant?.onSale && matchedVariant.salePriceCents != null ? (
+            <>
+              <span className="text-lg text-cream/40 line-through font-heading">{formatCents(matchedVariant.priceCents)}</span>
+              <span className="text-2xl font-heading text-gold">{formatCents(matchedVariant.salePriceCents)}</span>
+              <span className="bg-gold text-ink text-[10px] uppercase tracking-wide px-2 py-1 rounded font-semibold">
+                Sale
+              </span>
+            </>
+          ) : (
+            <span className="text-2xl font-heading">{matchedVariant ? formatCents(matchedVariant.priceCents) : ""}</span>
+          )}
+        </div>
 
         {optionGroups.map((group) => (
           <div key={group.name} className="mb-6">
@@ -229,7 +243,7 @@ export default function ProductInteractive({
                     productSlug,
                     title,
                     variantTitle: matchedVariant.title,
-                    priceCents: matchedVariant.priceCents,
+                    priceCents: effectivePriceCents(matchedVariant),
                     imageUrl: matchedVariant.imageUrl ?? images[0]?.url ?? null,
                   },
                   quantity
