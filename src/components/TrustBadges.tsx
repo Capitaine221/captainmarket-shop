@@ -39,11 +39,16 @@ function Icon({ name }: { name: string }) {
 
 export default function TrustBadges() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-6 border-y border-white/10">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       {BADGES.map((b) => (
-        <div key={b.label} className="flex flex-col items-center text-center gap-2">
-          <Icon name={b.icon} />
-          <span className="text-xs text-cream/60">{b.label}</span>
+        <div
+          key={b.label}
+          className="flex items-center gap-3 rounded-2xl border border-line bg-card px-4 py-3.5"
+        >
+          <span className="grid place-items-center w-9 h-9 shrink-0 rounded-xl bg-gold/10 text-gold">
+            <Icon name={b.icon} />
+          </span>
+          <span className="text-xs md:text-sm font-semibold text-cream/85 leading-snug">{b.label}</span>
         </div>
       ))}
     </div>

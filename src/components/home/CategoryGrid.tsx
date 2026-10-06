@@ -5,28 +5,42 @@ type Cat = { slug: string; name: string; imageUrl: string | null };
 
 export default function CategoryGrid({ categories }: { categories: Cat[] }) {
   return (
-    <section className="max-w-[1600px] mx-auto px-4 md:px-8 py-16">
-      <h2 className="font-heading text-2xl md:text-3xl text-center mb-10">Shop by Category</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <section className="max-w-[1600px] mx-auto px-4 md:px-8 py-14 md:py-20">
+      <div className="text-center mb-10">
+        <p className="eyebrow mb-3">Browse</p>
+        <h2 className="font-heading text-3xl md:text-4xl">Shop by Category</h2>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
         {categories.map((c) => (
-          <Link key={c.slug} href={`/category/${c.slug}`} className="group block">
-            <div className="aspect-square rounded-card overflow-hidden bg-ink-2 relative">
+          <Link
+            key={c.slug}
+            href={`/category/${c.slug}`}
+            className="group card-hover block rounded-card overflow-hidden bg-card border border-line"
+          >
+            <div className="relative aspect-square bg-ink-2 overflow-hidden">
               {c.imageUrl ? (
                 <Image
                   src={c.imageUrl}
-                  alt={c.name}
+                  alt=""
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(min-width: 1024px) 16vw, (min-width: 768px) 33vw, 50vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-cream/30 text-xs">
-                  {c.name}
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-card-2 to-card" />
               )}
             </div>
-            <p className="text-sm text-center mt-3 text-cream/80 group-hover:text-gold transition-colors">
-              {c.name}
-            </p>
+            <div className="flex items-center justify-between gap-2 px-4 py-3.5">
+              <span className="font-heading text-sm md:text-base leading-tight group-hover:text-gold transition-colors">
+                {c.name}
+              </span>
+              <span
+                aria-hidden="true"
+                className="grid place-items-center w-7 h-7 shrink-0 rounded-full border border-line text-gold group-hover:bg-gold group-hover:text-[#1a1400] group-hover:border-gold transition-colors"
+              >
+                →
+              </span>
+            </div>
           </Link>
         ))}
       </div>

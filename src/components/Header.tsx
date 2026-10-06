@@ -12,9 +12,9 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-ink/95 backdrop-blur border-b border-white/10">
+      <header className="sticky top-0 z-40 bg-ink/85 backdrop-blur-xl border-b border-line">
         <div className="max-w-[1600px] mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-8 py-5">
+          <div className="flex items-center gap-2.5 sm:gap-6 lg:gap-8 py-3.5">
             <button
               className="md:hidden text-cream"
               aria-label="Menu"
@@ -25,7 +25,13 @@ export default function Header() {
               </svg>
             </button>
 
-            <Link href="/" className="font-heading text-lg tracking-wide shrink-0">
+            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 font-heading text-[15px] sm:text-lg tracking-wide shrink-0">
+              <span
+                aria-hidden="true"
+                className="grid place-items-center w-8 h-8 rounded-[10px] bg-gradient-to-br from-gold-2 to-gold text-[#1a1400] text-base font-bold"
+              >
+                C
+              </span>
               CAPTAINMARKET
             </Link>
 
@@ -34,7 +40,7 @@ export default function Header() {
                 <div key={item.href} className="group relative shrink-0">
                   <Link
                     href={item.href}
-                    className="flex items-center gap-1 px-2.5 py-2 text-sm whitespace-nowrap text-cream/90 hover:text-cream transition-colors"
+                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium whitespace-nowrap text-cream/80 hover:text-gold hover:bg-white/5 rounded-lg transition-colors"
                   >
                     {item.title}
                     {item.children && (
@@ -44,7 +50,7 @@ export default function Header() {
                     )}
                   </Link>
                   {item.children && (
-                    <div className="absolute left-0 top-full hidden group-hover:block bg-ink-3 border border-white/10 rounded-md py-2 min-w-[240px] shadow-xl">
+                    <div className="absolute left-0 top-full hidden group-hover:block bg-card border border-line rounded-xl py-2 min-w-[240px] shadow-2xl">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}

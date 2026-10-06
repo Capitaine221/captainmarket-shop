@@ -31,34 +31,43 @@ export default function ProductCard({ product }: { product: CardProduct }) {
   }, null);
   const displayPriceCents = cheapest ? effectivePriceCents(cheapest) : 0;
   const onSale = cheapest?.onSale && cheapest.salePriceCents != null;
+  const discountPct =
+    onSale && cheapest && cheapest.priceCents > 0
+      ? Math.round((1 - displayPriceCents / cheapest.priceCents) * 100)
+      : 0;
 
   return (
-    <Link href={`/product/${product.slug}`} className="group block">
-      <div className="relative aspect-square rounded-card overflow-hidden bg-ink-2">
+    <Link
+      href={`/product/${product.slug}`}
+      className="group card-hover block rounded-card bg-card border border-line overflow-hidden"
+    >
+      <div className="relative aspect-square bg-ink-2 overflow-hidden">
         {product.images[0] && (
           <Image
             src={product.images[0].url}
             alt={product.title}
             fill
-            className="object-cover transition-opacity duration-300 group-hover:opacity-0"
+            sizes="(min-width: 768px) 25vw, 50vw"
+            className="object-cover transition-all duration-500 group-hover:opacity-0 group-hover:scale-105"
           />
         )}
         {product.images[1] && (
           <Image
             src={product.images[1].url}
-            alt={product.title}
+            alt=""
             fill
-            className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            sizes="(min-width: 768px) 25vw, 50vw"
+            className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           />
         )}
-        <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
+        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
           {onSale && (
-            <span className="bg-gold text-ink text-[10px] uppercase tracking-wide px-2 py-1 rounded font-semibold">
-              Sale
+            <span className="bg-sale text-white text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-md">
+              Sale{discountPct > 0 ? ` −${discountPct}%` : ""}
             </span>
           )}
           {!inStock && (
-            <span className="bg-ink-3 text-cream/70 text-[10px] uppercase tracking-wide px-2 py-1 rounded">
+            <span className="bg-ink/90 text-cream/80 text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-md">
               Sold out
             </span>
           )}
@@ -78,21 +87,21 @@ export default function ProductCard({ product }: { product: CardProduct }) {
           )
         )}
       </div>
-      <div className="mt-3">
+      <div className="p-3.5 md:p-4">
         {product.vendor && (
-          <p className="text-[10px] uppercase tracking-wide text-cream/40">{product.vendor}</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted mb-1">{product.vendor}</p>
         )}
-        <h3 className="text-sm font-medium text-cream/90 group-hover:text-gold transition-colors line-clamp-1">
+        <h3 className="text-sm md:text-[15px] font-semibold text-cream group-hover:text-gold transition-colors line-clamp-2 min-h-[2.6em]">
           {product.title}
         </h3>
-        <p className="text-sm mt-0.5">
+        <p className="mt-2 flex items-baseline gap-2">
           {onSale && cheapest ? (
             <>
-              <span className="text-cream/40 line-through mr-1.5">{formatCents(cheapest.priceCents)}</span>
-              <span className="text-gold">{formatCents(displayPriceCents)}</span>
+              <span className="font-heading text-lg text-gold">{formatCents(displayPriceCents)}</span>
+              <span className="text-xs text-muted line-through">{formatCents(cheapest.priceCents)}</span>
             </>
           ) : (
-            <span className="text-cream/60">{formatCents(displayPriceCents)}</span>
+            <span className="font-heading text-lg text-cream">{formatCents(displayPriceCents)}</span>
           )}
         </p>
       </div>

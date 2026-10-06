@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Hero from "@/components/home/Hero";
+import TrustBadges from "@/components/TrustBadges";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import ProductSection from "@/components/home/ProductSection";
 import ShowcaseBanner from "@/components/home/ShowcaseBanner";
@@ -47,6 +48,9 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
+      <div className="max-w-[1600px] mx-auto px-3 md:px-8 pt-4">
+        <TrustBadges />
+      </div>
       <CategoryGrid categories={categories} />
       <ProductSection
         title="New Arrivals"

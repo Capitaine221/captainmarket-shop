@@ -45,7 +45,7 @@ export default function QuickAddButton({
           imageUrl,
         });
       }}
-      className="absolute bottom-0 left-0 right-0 bg-ink/90 backdrop-blur text-cream text-xs font-medium py-2.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+      className="btn-primary absolute inset-x-3 bottom-3 text-xs py-2.5 md:opacity-0 md:translate-y-1 md:group-hover:opacity-100 md:group-hover:translate-y-0 disabled:hidden"
     >
       {outOfStock ? "Sold out" : "Quick add"}
     </button>
